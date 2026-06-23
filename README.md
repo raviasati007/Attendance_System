@@ -79,18 +79,18 @@ function doPost(e) {
 }
 
 
-Deploy as Web App → set access to Anyone.
+### Deploy as Web App → set access to Anyone.
 
 Copy the Web App URL.
 
-3. Frontend
+### 3. Frontend
 Save the provided HTML file (attendance.html).
 
 Replace sheetURL in the script with your Web App URL.
 
 Open the file in a browser.
 
-🚀 Usage
+### 🚀 Usage
 Select the date from the date picker.
 
 Mark P or A for each student.
