@@ -1,43 +1,43 @@
-📋 Student Attendance System
-A responsive web-based attendance system built with HTML, CSS, and JavaScript, integrated with Google Sheets via Google Apps Script.
+# 📋 Student Attendance System
+
+A responsive web-based attendance system built with **HTML, CSS, and JavaScript**, integrated with **Google Sheets** via Google Apps Script.  
 This project allows faculty to mark attendance for a fixed list of student USNs, with each date recorded as a new column in the sheet.
 
-🌟 Features
-Responsive card-based UI (desktop & mobile friendly).
+---
 
-Date picker to select the attendance date.
+## 🌟 Features
+- Responsive **card-based UI** (mobile & desktop friendly).
+- **Date picker** to select the attendance date.
+- **Present (P)** and **Absent (A)** buttons for each student.
+- Neutral buttons initially → change to **green (P)** or **red (A)** when clicked.
+- Confirmation prompt before submission.
+- Attendance stored in Google Sheet:
+  - Column A → USN list (fixed).
+  - Row 1 → Date headers.
+  - Each submission fills **P/A under the selected date column**.
 
-Present (P) and Absent (A) buttons for each student.
+---
 
-Neutral buttons initially → change to green (P) or red (A) when clicked.
+## 🛠️ Tech Stack
+- **Frontend:** HTML, CSS, JavaScript
+- **Backend:** Google Apps Script Web App
+- **Database:** Google Sheets
 
-Confirmation prompt before submission.
+---
 
-Attendance stored in Google Sheet with USNs fixed in rows and dates as columns.
+## ⚙️ Setup Instructions
 
-🛠️ Tech Stack
-Frontend: HTML, CSS, JavaScript
+### 1. Google Sheet
+- Create a Google Sheet with:
+  - Column A: `USN`
+  - Row 1: `USN` header + future date headers
+- Fill Column A with student USNs.
 
-Backend: Google Apps Script Web App
+### 2. Apps Script Backend
+- Open the sheet → **Extensions → Apps Script**.
+- Paste the following code:
 
-Database: Google Sheets
-
-⚙️ Setup Instructions
-1. Google Sheet
-Create a Google Sheet with:
-
-Column A: USN
-
-Row 1: USN header + future date headers
-
-Fill Column A with student USNs.
-
-2. Apps Script Backend
-Open the sheet → Extensions → Apps Script.
-
-Paste the following code:
-
-javascript
+```javascript
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = JSON.parse(e.postData.contents);
@@ -77,18 +77,20 @@ function doPost(e) {
 
   return ContentService.createTextOutput("Success");
 }
-Deploy as Web App → set access to Anyone.
+
+
+### Deploy as Web App → set access to Anyone.
 
 Copy the Web App URL.
 
-3. Frontend
+### 3. Frontend
 Save the provided HTML file (attendance.html).
 
 Replace sheetURL in the script with your Web App URL.
 
 Open the file in a browser.
 
-🚀 Usage
+### 🚀 Usage
 Select the date from the date picker.
 
 Mark P or A for each student.
@@ -100,13 +102,16 @@ Confirm submission → Attendance updates in Google Sheet.
 Each date creates a new column in the sheet, with USNs fixed in rows.
 
 📂 Project Structure
-Code
 attendance.html   # Frontend UI
 README.md         # Documentation
 Google Sheet      # Data storage
 Apps Script       # Backend logic
-🌐 Live Demo
-👉 Attendance Webpage
 
-📜 License
+
+🌐 Live Demo
+👉 Attendance Webpage (raviasati007.github.io in Bing)
+
+(Replace with your actual GitHub Pages or hosting link once deployed)
+
+License
 This project is for academic use. Modify and extend as needed for your institution.
