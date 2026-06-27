@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Attendance System - Login</title>
+  
+  <script src="https://google.com" async defer></script>
+  <style>
+    :root {
+      --primary: #0078d7;
+      --bg-main: #f4f4f9;
+      --card-bg: #ffffff;
+      --text-dark: #333333;
+      --text-muted: #666666;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      padding: 32px 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+
+    .app-logo {
+      font-size: 42px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    /* Target container for Google Smart Button layout injection */
+    .google-btn-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      min-height: 44px; /* Prevents layout shifting during API render load */
+    }
+
+    .error-msg {
+      display: none;
+      color: #f44336;
+      font-size: 13px;
+      margin-top: 12px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="app-logo">📝</div>
+    <h1>Attendance System</h1>
+    <p class="subtitle">Please sign in with your faculty or student account</p>
+
+    <!-- Google Login Core API Declarative Configurations -->
+    <div id="g_id_onload"
+         data-client_id="YOUR_GOOGLE_CLIENT_://googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
+    <!-- The actual Google branded rendered button container -->
+    <div class="google-btn-wrapper">
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="signin_with"
+           data-size="large"
+           data-logo_alignment="left">
+      </div>
+    </div>
+
+    <div id="errorBox" class="error-msg"></div>
+  </div>
+
+  <script>
+    /**
+     * Triggered automatically by the Google API Client upon successful user sign-in 
+     * @param {Object} response - Payload back from Google Identity servers containing JSON Web Token (JWT)
+     */
+    function handleCredentialResponse(response) {
+      if (!response.credential) {
+        showError("Authentication token failed to load. Try again.");
+        return;
+      }
+
+      try {
+        // Step 1: Decode the safety credential payload (JWT token string) locally
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const userProfile = JSON.parse(jsonPayload);
+
+        // Step 2: Validate domain restrictions or store active profile states
+        console.log("Logged user object verified: ", userProfile);
+        
+        // Save payload session states inside browser memory storage
+        sessionStorage.setItem("userToken", response.credential);
+        sessionStorage.setItem("userName", userProfile.name);
+        sessionStorage.setItem("userEmail", userProfile.email);
+
+        // Step 3: Redirect user onto your main attendance viewport script
+        window.location.href = "attendance.html"; 
+
+      } catch (err) {
+        showError("Failed parsing secure profile token context.");
+        console.error(err);
+      }
+    }
+
+    function showError(message) {
+      const errorBox = document.getElementById("errorBox");
+      errorBox.innerText = `⚠️ ${message}`;
+      errorBox.style.display = "block";
+    }
+  </script>
+</body>
+</html>
