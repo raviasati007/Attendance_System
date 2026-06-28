@@ -1,0 +1,53 @@
+
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var attendance = data.attendance; // array of { rollNo, attendance, date }
+    var session = data.session;       // { date, topic, time }
+
+    var ss = SpreadsheetApp.openById("1NNA1ih5_CX-UGoVZKVHpj2IpDRfu32JWZwAAbq7HNwI"); // replace with your sheet ID
+    var sheet = ss.getSheetByName("Theory");
+
+    var dateString = session.date;
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var colIndex = headers.indexOf(dateString);
+
+    if (colIndex === -1) {
+      colIndex = headers.length;
+      sheet.getRange(1, colIndex + 1).setValue(dateString);
+    } else {
+      colIndex += 1;
+    }
+
+    attendance.forEach(function(record) {
+      var rollNo = record.rollNo;
+      var status = record.attendance; // "P" or "A"
+
+      var rollNumbers = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+      for (var i = 0; i < rollNumbers.length; i++) {
+        if (rollNumbers[i][0] == rollNo) {
+          sheet.getRange(i + 2, colIndex).setValue(status);
+          break;
+        }
+      }
+    });
+
+    return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+  } catch (err) {
+    return ContentService.createTextOutput("Error: " + err).setMimeType(ContentService.MimeType.TEXT);
+  }
+}
+
+function doGet(e) {
+  var sheetName = e.parameter.sheet || "Theory";
+  var ss = SpreadsheetApp.openById("1NNA1ih5_CX-UGoVZKVHpj2IpDRfu32JWZwAAbq7HNwI"); // replace with your sheet ID
+  var sheet = ss.getSheetByName(sheetName);
+  var data = sheet.getDataRange().getValues();
+
+  return ContentService.createTextOutput(
+    JSON.stringify({ rows: data })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+URL 
+https://script.google.com/macros/s/AKfycbxh1DwryiPZwwm_V5toEsiJt6Kkhlu6YpoXMqAFynSf2su5mOzDmtYekLVj2bi1Ib1j/exec
