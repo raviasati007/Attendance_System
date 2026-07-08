@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Crucial viewport setting for scaling crisp text on high-density FHD+ displays -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Attendance - Mobile Optimized</title>
+  <style>
+    :root {
+      --primary: #0078d7;
+      --primary-hover: #005a9e;
+      --bg-main: #f4f4f9;
+      --card-bg: #ffffff;
+      --text-dark: #333333;
+      --text-muted: #666666;
+      --present-color: #4CAF50;
+      --absent-color: #f44336;
+      --btn-inactive: #e0e0e0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      background: var(--bg-main); 
+      color: var(--text-dark);
+      padding: 16px;
+      line-height: 1.4;
+    }
+    h2 { 
+      text-align: center; 
+      margin: 12px 0 20px 0; 
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .form-header-card {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group:last-child { margin-bottom: 0; }
+    .row-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 10px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input[type="date"], input[type="text"], input[type="time"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text-dark);
+      background-color: #fff;
+      transition: all 0.2s ease;
+      -webkit-appearance: none;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.15);
+    }
+    .list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 140px;
+    }
+    .student-row {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .student-details { display: flex; flex-direction: column; }
+    .roll-number { font-weight: 600; font-size: 16px; letter-spacing: 0.5px; }
+    .action-group { display: flex; gap: 8px; }
+    .status-btn {
+      font-weight: 700;
+      font-size: 15px;
+      width: 52px;
+      height: 44px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background-color: var(--btn-inactive);
+      color: var(--text-dark);
+      transition: all 0.1s ease;
+    }
+    .status-btn.present.active { background-color: var(--present-color); color: #fff; }
+    .status-btn.absent.active { background-color: var(--absent-color); color: #fff; }
+    .action-deck {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(244,244,249,1) 80%, rgba(244,244,249,0) 100%);
+      padding: 16px;
+      z-index: 100;
+    }
+    #submitBtn, #homeBtn, #logoutBtn {
+      display: block; width: 100%; max-width: 500px;
+      margin: 8px auto; padding: 14px;
+      border: none; border-radius: 12px;
+      cursor: pointer; font-size: 15px; font-weight: 600;
+    }
+    #submitBtn { background: var(--primary); color: #fff; }
+    #submitBtn:active { background: var(--primary-hover); }
+    #homeBtn { background: #28a745; color: #fff; }
+    #homeBtn:hover { background: #1e7e34; }
+    #logoutBtn { background: #f44336; color: #fff; }
+    #logoutBtn:hover { background: #d32f2f; }
+  </style>
+</head>
+<body>
+
+  <h2>Class Attendance</h2>
+
+  <div class="form-header-card">
+    <div class="form-group row-grid">
+      <div>
+        <label for="attendanceDate">Date</label>
+        <input type="date" id="attendanceDate" required>
+      </div>
+      <div>
+        <label for="inTime">In</label>
+        <input type="time" id="inTime" required>
+      </div>
+      <div>
+        <label for="outTime">Out</label>
+        <input type="time" id="outTime" required>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top: 12px;">
+      <label for="topic">Lecture Topic</label>
+      <input type="text" id="topic" placeholder="e.g. Database Indexing" required>
+    </div>
+  </div>
+
+  <form id="attendanceForm">
+    <div class="list-container" id="studentList"></div>
+    <div class="action-deck">
+      <button id="submitBtn" type="submit">Submit Attendance</button>
+      <button id="homeBtn" type="button" onclick="goHome()">🏠 Home</button>
+      <button id="logoutBtn" type="button" onclick="logout()">Logout</button>
+    </div>
+  </form>
+
+   <script>
+    // 🔒 Session check
+    window.onload = function() {
+      const sessionUser = localStorage.getItem("sessionUser");
+      if (!sessionUser) {
+        alert("⚠️ Session expired. Please log in again.");
+        window.location.href = "index.html";
+      }
+      document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+    };
+
+    function logout() {
+      localStorage.removeItem("sessionUser");
+      window.location.href = "index.html";
+    }
+
+    function goHome() {
+      window.location.href = "app.html";
+    }
+
+    // Google Apps Script endpoint
+    const sheetURL = "https://script.google.com/macros/s/AKfycbz5pWvUViF-3rMsiRa3MvugjH1hphTRH0LMfMjm31PkSsn9ecaP0rnvh2Cz-aysTvwN/exec";
+
+    // Student roll numbers
+    const students = [
+      "CD24001","CD24002","CD24003","CD24004","CD24005","CD24006","CD24007","CD24008","CD24009","CD24010",
+      "CD24011","CD24012","CD24013","CD24014","CD24015","CD24016","CD24017","CD24018","CD24019","CD24020",
+      "CD24021","CD24022","CD24023","CD24024","CD24025","CD24026","CD24027","CD24028","CD24029","CD24030",
+      "CD24031","CD24032","CD24033","CD24034","CD24035","CD24036","CD24037","CD24038","CD24039","CD24040",
+      "CD24041","CD24042","CD24043","CD24044","CD24045","CD24046","CD24047","CD24048","CD24049","CD24050",
+      "CD24052","CD24053","CD24054","CD24056","CD24057","CD24060","CD24061","CD24062","CD24063","CD24064",
+      "CD25D001","CD25D002","CD25D003","CD25D004","CD25D005","CD25D006","CD25D007","CD25D008",
+      "EE24TCD001","EE24TCD002"
+    ];
+
+    // Default all students to Absent
+    const attendanceData = {};
+    students.forEach(rollNo => {
+      attendanceData[rollNo] = "A";
+    });
+
+    const listContainer = document.getElementById("studentList");
+
+    // Build student rows dynamically
+    students.forEach(rollNo => {
+      const row = document.createElement("div");
+      row.className = "student-row";
+      row.innerHTML = `
+        <div class="student-details">
+          <span class="roll-number">${rollNo}</span>
+        </div>
+        <div class="action-group">
+          <button type="button" class="status-btn present" data-roll="${rollNo}" data-status="P">P</button>
+          <button type="button" class="status-btn absent active" data-roll="${rollNo}" data-status="A">A</button>
+        </div>
+      `;
+      listContainer.appendChild(row);
+    });
+
+    // Toggle attendance status
+    listContainer.addEventListener('click', function(e) {
+      if(e.target && e.target.classList.contains('status-btn')) {
+        const btn = e.target;
+        const rollNo = btn.getAttribute('data-roll');
+        const status = btn.getAttribute('data-status');
+        
+        attendanceData[rollNo] = status;
+        
+        const targetParent = btn.parentElement;
+        targetParent.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    });
+
+    // Submit attendance
+    document.getElementById("attendanceForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const date = document.getElementById("attendanceDate").value;
+      const topic = document.getElementById("topic").value.trim();
+      const inTime = document.getElementById("inTime").value;
+      const outTime = document.getElementById("outTime").value;
+
+      if (!date || !topic || !inTime || !outTime) {
+        alert("⚠️ Please fill all fields before submitting.");
+        return;
+      }
+
+      const attendancePayload = students.map(rollNo => ({
+        rollNo,
+        attendance: attendanceData[rollNo],
+        date
+      }));
+
+      const sessionPayload = {
+        date,
+        topic,
+        time: `${inTime} - ${outTime}`
+      };
+
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Saving Data...";
+
+      fetch(sheetURL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attendance: attendancePayload,
+          session: sessionPayload
+        })
+      })
+      .then(() => {
+        alert("✅ Attendance data compiled and sent successfully!");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit Attendance";
+      })
+      .catch(err => {
+        alert("❌ Network Error encountered: " + err);
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit Attendance";
+      });
+    });
+  </script>
+</body>
+</html>
