@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #0078d7;
+      --bg: #f4f4f9;
+      --card-bg: #ffffff;
+      --sincere: #2ecc71;
+      --average: #f1c40f;
+      --low: #e74c3c;
+    }
+    body { font-family: "Segoe UI", Roboto, sans-serif; background: var(--bg); margin:0; padding:16px; }
+    header { text-align:center; margin-bottom:20px; }
+    header h1 { font-size:26px; font-weight:700; color:var(--primary); }
+    .sheet-select {
+      font-size: 16px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+    .nav-buttons {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .nav-buttons button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+    }
+    #backBtn { background: #28a745; }
+    #backBtn:hover { background: #1e7e34; }
+    #logoutBtn { background: #f44336; }
+    #logoutBtn:hover { background: #d32f2f; }
+
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:20px; }
+    .card { background:var(--card-bg); padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); text-align:center; }
+    .card h2 { font-size:22px; margin:0; color:var(--primary); }
+    .card p { font-size:14px; margin-top:6px; color:#666; }
+    canvas { margin:20px auto; display:block; max-width:100%; height:auto; }
+    .table-container { overflow-x:auto; margin-top:20px; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { border:1px solid #ddd; padding:10px; text-align:center; }
+    th { background:var(--primary); color:#fff; font-weight:600; }
+    tr:nth-child(even) { background:#fafafa; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Attendance Dashboard</h1>
+    <select id="sheetSelect" class="sheet-select">
+      <option value="Theory">Theory</option>
+      <option value="Practical">Practical</option>
+    </select>
+    <div class="nav-buttons">
+      <button id="backBtn" onclick="goBack()">🏠 Back</button>
+      <button id="logoutBtn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="card"><h2 id="totalStudents">0</h2><p>Total Students</p></div>
+    <div class="card"><h2 id="sincereCount">0</h2><p>Sincere (≥75%)</p></div>
+    <div class="card"><h2 id="averageCount">0</h2><p>Average (50–74%)</p></div>
+    <div class="card"><h2 id="lowCount">0</h2><p>Low (&lt;50%)</p></div>
+  </div>
+
+  <canvas id="categoryChart"></canvas>
+
+  <div class="table-container">
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th>Roll No</th>
+          <th>Name</th>
+          <th>Total Classes</th>
+          <th>Presents</th>
+          <th>Attendance %</th>
+          <th>Category</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // 🔒 Session check
+    window.onload = function() {
+      const sessionUser = localStorage.getItem("sessionUser");
+      if (!sessionUser) {
+        alert("⚠️ Session expired. Please log in again.");
+        window.location.href = "index.html";
+      } else {
+        loadData("Theory");
+      }
+    };
+
+    function logout() {
+      localStorage.removeItem("sessionUser");
+      window.location.href = "index.html";
+    }
+
+    function goBack() {
+      window.location.href = "app.html";
+    }
+
+    const endpoint = "https://script.google.com/macros/s/AKfycbxh1DwryiPZwwm_V5toEsiJt6Kkhlu6YpoXMqAFynSf2su5mOzDmtYekLVj2bi1Ib1j/exec"; 
+    let categoryChart;
+
+    async function loadData(sheetName="Theory") {
+      try {
+        const response = await fetch(endpoint + "?sheet=" + sheetName);
+        const sheetData = await response.json();
+
+        const rows = sheetData.rows;
+        const headers = rows[0];
+        const totalClasses = headers.length - 2;
+
+        let sincere=0, average=0, low=0;
+        const tbody = document.querySelector("#attendanceTable tbody");
+        tbody.innerHTML = "";
+
+        rows.slice(1).forEach(r => {
+          if (!r || r.length < 3) return;
+          const rollNo = r[0] || "";
+          const name = r[1] || "";
+          const marks = r.slice(2).filter(m => m === "P" || m === "A");
+          const presents = marks.filter(m => m === "P").length;
+          const percent = totalClasses > 0 ? (presents / totalClasses) * 100 : 0;
+
+          let category = "";
+          if (percent >= 75) { category="Sincere"; sincere++; }
+          else if (percent >= 50) { category="Average"; average++; }
+          else { category="Low"; low++; }
+
+          const rowHtml = `<tr>
+            <td>${rollNo}</td>
+            <td>${name}</td>
+            <td>${totalClasses}</td>
+            <td>${presents}</td>
+            <td>${percent.toFixed(1)}%</td>
+            <td>${category}</td>
+          </tr>`;
+          tbody.innerHTML += rowHtml;
+        });
+
+        document.getElementById("totalStudents").innerText = rows.length - 1;
+        document.getElementById("sincereCount").innerText = sincere;
+        document.getElementById("averageCount").innerText = average;
+        document.getElementById("lowCount").innerText = low;
+
+        const sincereColor = getComputedStyle(document.documentElement).getPropertyValue('--sincere').trim();
+        const averageColor = getComputedStyle(document.documentElement).getPropertyValue('--average').trim();
+        const lowColor = getComputedStyle(document.documentElement).getPropertyValue('--low').trim();
+
+        const ctx = document.getElementById("categoryChart").getContext("2d");
+        if (categoryChart instanceof Chart) categoryChart.destroy();
+        categoryChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Sincere", "Average", "Low"],
+            datasets: [{
+              data: [sincere, average, low],
+              backgroundColor: [sincereColor, averageColor, lowColor]
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+        });
+      } catch (err) {
+        alert("Error loading data: " + err);
+      }
+    }
+
+    document.getElementById("sheetSelect").addEventListener("change", e => {
+      loadData(e.target.value);
+    });
+  </script>
+</body>
+</html>

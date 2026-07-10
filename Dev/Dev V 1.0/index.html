@@ -89,26 +89,20 @@
         return;
       }
 
+      // Hash entered password
       const hashedPassword = await sha256(password);
 
-      // Example stored hash (replace with secure backend validation)
+      // Example stored hash (replace with your own secure hash)
       const storedHash = "04256df38ff7a308dc6802f43a6a9700347b4038428a7a816d82953e1759f8fe";
+
+      // Example username check
       const validUser = "admin";
 
       if (hashedPassword === storedHash && username === validUser) {
-        // Save session in localStorage
-        localStorage.setItem("sessionUser", username);
-        window.location.href = "/Prod/app.html";
+        // Redirect to dashboard
+        window.location.href = "app.html";
       } else {
         errorMsg.textContent = "Invalid username or password.";
-      }
-    }
-
-    // Auto-redirect if session exists
-    window.onload = function() {
-      const sessionUser = localStorage.getItem("sessionUser");
-      if (sessionUser) {
-        window.location.href = "/Prod/app.html";
       }
     }
   </script>
