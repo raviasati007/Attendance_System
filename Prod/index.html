@@ -98,7 +98,7 @@
       if (hashedPassword === storedHash && username === validUser) {
         // Save session in localStorage
         localStorage.setItem("sessionUser", username);
-        window.location.href = "Prod/app.html";
+        window.location.href = "https://raviasati007.github.io/Attendance_System/Prod/app.html";
       } else {
         errorMsg.textContent = "Invalid username or password.";
       }
@@ -108,7 +108,7 @@
     window.onload = function() {
       const sessionUser = localStorage.getItem("sessionUser");
       if (sessionUser) {
-        window.location.href = "Prod/app.html";
+        window.location.href = "https://raviasati007.github.io/Attendance_System/Prod/app.html";
       }
     }
   </script>
