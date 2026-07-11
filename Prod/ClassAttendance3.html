@@ -126,7 +126,7 @@
 </head>
 <body>
 
-  <h2>Class Attendance</h2>
+  <h2>Class 3rd Sem Sec-A Data Science Attendance </h2>
 
   <div class="form-header-card">
     <div class="form-group row-grid">
@@ -158,129 +158,129 @@
     </div>
   </form>
 
-   <script>
-    // 🔒 Session check
-    window.onload = function() {
-      const sessionUser = localStorage.getItem("sessionUser");
-      if (!sessionUser) {
-        alert("⚠️ Session expired. Please log in again.");
-        window.location.href = "index.html";
-      }
-      document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
-    };
-
-    function logout() {
-      localStorage.removeItem("sessionUser");
+ <script>
+  // 🔒 Session check
+  window.onload = function() {
+    const sessionUser = localStorage.getItem("sessionUser");
+    if (!sessionUser) {
+      alert("⚠️ Session expired. Please log in again.");
       window.location.href = "index.html";
     }
+    document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+  };
 
-    function goHome() {
-      window.location.href = "app.html";
+  function logout() {
+    localStorage.removeItem("sessionUser");
+    window.location.href = "index.html";
+  }
+
+  function goHome() {
+    window.location.href = "app.html";
+  }
+
+  // ✅ Updated Google Apps Script endpoint
+  const sheetURL = "https://script.google.com/macros/s/AKfycbzdJ01LCD1nFHuUxzW-0qUKisnMDdL0mf-cadD_yloBR5DNyy5IZfN8jxBBUQ64ExeL/exec";
+
+  // ✅ Updated student roll numbers CD25001–CD25062
+  const students = [
+    "CD25001","CD25002","CD25003","CD25004","CD25005","CD25006","CD25007","CD25008","CD25009","CD25010",
+    "CD25011","CD25012","CD25013","CD25014","CD25015","CD25016","CD25017","CD25018","CD25019","CD25020",
+    "CD25021","CD25022","CD25023","CD25024","CD25025","CD25026","CD25027","CD25028","CD25029","CD25030",
+    "CD25031","CD25032","CD25033","CD25034","CD25035","CD25036","CD25037","CD25038","CD25039","CD25040",
+    "CD25041","CD25042","CD25043","CD25044","CD25045","CD25046","CD25047","CD25048","CD25049","CD25050",
+    "CD25051","CD25052","CD25053","CD25054","CD25055","CD25056","CD25057","CD25058","CD25059","CD25060",
+    "CD25061","CD25062"
+  ];
+
+  // Default all students to Absent
+  const attendanceData = {};
+  students.forEach(rollNo => {
+    attendanceData[rollNo] = "A";
+  });
+
+  const listContainer = document.getElementById("studentList");
+
+  // Build student rows dynamically
+  students.forEach(rollNo => {
+    const row = document.createElement("div");
+    row.className = "student-row";
+    row.innerHTML = `
+      <div class="student-details">
+        <span class="roll-number">${rollNo}</span>
+      </div>
+      <div class="action-group">
+        <button type="button" class="status-btn present" data-roll="${rollNo}" data-status="P">P</button>
+        <button type="button" class="status-btn absent active" data-roll="${rollNo}" data-status="A">A</button>
+      </div>
+    `;
+    listContainer.appendChild(row);
+  });
+
+  // Toggle attendance status
+  listContainer.addEventListener('click', function(e) {
+    if(e.target && e.target.classList.contains('status-btn')) {
+      const btn = e.target;
+      const rollNo = btn.getAttribute('data-roll');
+      const status = btn.getAttribute('data-status');
+      
+      attendanceData[rollNo] = status;
+      
+      const targetParent = btn.parentElement;
+      targetParent.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  });
+
+  // Submit attendance
+  document.getElementById("attendanceForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const date = document.getElementById("attendanceDate").value;
+    const topic = document.getElementById("topic").value.trim();
+    const inTime = document.getElementById("inTime").value;
+    const outTime = document.getElementById("outTime").value;
+
+    if (!date || !topic || !inTime || !outTime) {
+      alert("⚠️ Please fill all fields before submitting.");
+      return;
     }
 
-    // Google Apps Script endpoint
-    const sheetURL = "https://script.google.com/macros/s/AKfycbz5pWvUViF-3rMsiRa3MvugjH1hphTRH0LMfMjm31PkSsn9ecaP0rnvh2Cz-aysTvwN/exec";
+    const attendancePayload = students.map(rollNo => ({
+      rollNo,
+      attendance: attendanceData[rollNo],
+      date
+    }));
 
-    // Student roll numbers
-    const students = [
-      "CD24001","CD24002","CD24003","CD24004","CD24005","CD24006","CD24007","CD24008","CD24009","CD24010",
-      "CD24011","CD24012","CD24013","CD24014","CD24015","CD24016","CD24017","CD24018","CD24019","CD24020",
-      "CD24021","CD24022","CD24023","CD24024","CD24025","CD24026","CD24027","CD24028","CD24029","CD24030",
-      "CD24031","CD24032","CD24033","CD24034","CD24035","CD24036","CD24037","CD24038","CD24039","CD24040",
-      "CD24041","CD24042","CD24043","CD24044","CD24045","CD24046","CD24047","CD24048","CD24049","CD24050",
-      "CD24052","CD24053","CD24054","CD24056","CD24057","CD24060","CD24061","CD24062","CD24063","CD24064",
-      "CD25D001","CD25D002","CD25D003","CD25D004","CD25D005","CD25D006","CD25D007","CD25D008",
-      "EE24TCD001","EE24TCD002"
-    ];
+    const sessionPayload = {
+      date,
+      topic,
+      time: `${inTime} - ${outTime}`
+    };
 
-    // Default all students to Absent
-    const attendanceData = {};
-    students.forEach(rollNo => {
-      attendanceData[rollNo] = "A";
-    });
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Saving Data...";
 
-    const listContainer = document.getElementById("studentList");
-
-    // Build student rows dynamically
-    students.forEach(rollNo => {
-      const row = document.createElement("div");
-      row.className = "student-row";
-      row.innerHTML = `
-        <div class="student-details">
-          <span class="roll-number">${rollNo}</span>
-        </div>
-        <div class="action-group">
-          <button type="button" class="status-btn present" data-roll="${rollNo}" data-status="P">P</button>
-          <button type="button" class="status-btn absent active" data-roll="${rollNo}" data-status="A">A</button>
-        </div>
-      `;
-      listContainer.appendChild(row);
-    });
-
-    // Toggle attendance status
-    listContainer.addEventListener('click', function(e) {
-      if(e.target && e.target.classList.contains('status-btn')) {
-        const btn = e.target;
-        const rollNo = btn.getAttribute('data-roll');
-        const status = btn.getAttribute('data-status');
-        
-        attendanceData[rollNo] = status;
-        
-        const targetParent = btn.parentElement;
-        targetParent.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-    });
-
-    // Submit attendance
-    document.getElementById("attendanceForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const date = document.getElementById("attendanceDate").value;
-      const topic = document.getElementById("topic").value.trim();
-      const inTime = document.getElementById("inTime").value;
-      const outTime = document.getElementById("outTime").value;
-
-      if (!date || !topic || !inTime || !outTime) {
-        alert("⚠️ Please fill all fields before submitting.");
-        return;
-      }
-
-      const attendancePayload = students.map(rollNo => ({
-        rollNo,
-        attendance: attendanceData[rollNo],
-        date
-      }));
-
-      const sessionPayload = {
-        date,
-        topic,
-        time: `${inTime} - ${outTime}`
-      };
-
-      const submitBtn = document.getElementById("submitBtn");
-      submitBtn.disabled = true;
-      submitBtn.innerText = "Saving Data...";
-
-      fetch(sheetURL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          attendance: attendancePayload,
-          session: sessionPayload
-        })
+    fetch(sheetURL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        attendance: attendancePayload,
+        session: sessionPayload
       })
-      .then(() => {
-        alert("✅ Attendance data compiled and sent successfully!");
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Submit Attendance";
-      })
-      .catch(err => {
-        alert("❌ Network Error encountered: " + err);
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Submit Attendance";
-      });
+    })
+    .then(() => {
+      alert("✅ Attendance data compiled and sent successfully!");
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Submit Attendance";
+    })
+    .catch(err => {
+      alert("❌ Network Error encountered: " + err);
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Submit Attendance";
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>

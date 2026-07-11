@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: #f9f9fb;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0078d7;
+    }
+    .profile-card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 20px;
+      text-align: center;
+    }
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0078d7, #00b4ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: #fff;
+      margin: 0 auto 16px;
+    }
+    .profile-card h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #0078d7;
+    }
+    .profile-card p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #666;
+    }
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn {
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0078d7, #00b4ff);
+      color: #fff;
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, #005fa3, #0090cc); }
+    .btn-secondary {
+      background: linear-gradient(135deg, #28a745, #5cd65c);
+      color: #fff;
+    }
+    .btn-secondary:hover { background: linear-gradient(135deg, #1e7e34, #4bb34b); }
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6f61, #ff9472);
+      color: #fff;
+    }
+    .btn-danger:hover { background: linear-gradient(135deg, #e85c50, #f07c5c); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My Profile</h1>
+  </header>
+
+  <div class="profile-card">
+    <div class="avatar">👤</div>
+    <h2>Prof. Ravi Asati</h2>
+    <p>Email: raviasati@gmail.com</p>
+    <p>Role: Professor</p>
+
+    <div class="actions">
+      <button class="btn btn-primary">Edit Profile</button>
+      <button class="btn btn-secondary" onclick="goBack()">🏠 Back</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    // 🔒 Session check
+    window.onload = function() {
+      const sessionUser = localStorage.getItem("sessionUser");
+      if (!sessionUser) {
+        alert("⚠️ Session expired. Please log in again.");
+        window.location.href = "index.html";
+      }
+    };
+
+    function logout() {
+      localStorage.removeItem("sessionUser");
+      window.location.href = "index.html";
+    }
+
+    function goBack() {
+      window.location.href = "app.html";
+    }
+  </script>
+</body>
+</html>
